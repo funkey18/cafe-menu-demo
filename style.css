@@ -345,7 +345,7 @@ img {
   padding: 1rem;
 }
 
-.section-header-desktop {
+.section-header.section-header-desktop {
   display: none;
 }
 
@@ -851,7 +851,7 @@ img {
     display: none !important;
   }
 
-  .section-header-desktop {
+  .section-header.section-header-desktop {
     display: flex;
   }
 
