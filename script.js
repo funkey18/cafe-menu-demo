@@ -245,79 +245,158 @@ function renderPizzaItem(item) {
   `;
 }
 
+const CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+
+const CATEGORIES = [
+  { id: "starters", label: "Starters" },
+  { id: "rice", label: "Rice" },
+  { id: "roti", label: "Roti" },
+  { id: "burgers", label: "Burgers" },
+  { id: "snacks", label: "Snacks" },
+  { id: "fries", label: "Fries" },
+  { id: "soups", label: "Soups" },
+  { id: "vada", label: "Vada Pav" },
+  { id: "pav", label: "Pav Bhaji" },
+  { id: "sandwiches", label: "Sandwiches" },
+  { id: "pizza", label: "Pizza" },
+];
+
 function renderSection(title, iconKey, items, options = {}) {
   const iconClass = options.smallIcon ? "section-icon sm" : "section-icon";
   const itemsHtml = items.map(renderMenuItem).join("");
 
   return `
     <div class="menu-section">
-      <div class="section-header">
+      <button type="button" class="section-toggle" aria-expanded="true">
+        <div class="section-header">
+          <span class="${iconClass}">${ICONS[iconKey]}</span>
+          <h2 class="section-title">${escapeHtml(title)}</h2>
+        </div>
+        <span class="chevron" aria-hidden="true">${CHEVRON}</span>
+      </button>
+      <div class="section-header section-header-desktop">
         <span class="${iconClass}">${ICONS[iconKey]}</span>
         <h2 class="section-title">${escapeHtml(title)}</h2>
       </div>
-      <div class="menu-items">${itemsHtml}</div>
+      <div class="section-body">
+        <div class="menu-items">${itemsHtml}</div>
+      </div>
     </div>
   `;
+}
+
+function renderCategoryNav() {
+  const nav = document.getElementById("category-nav");
+  if (!nav) return;
+
+  nav.innerHTML = CATEGORIES.map(
+    (cat) =>
+      `<a class="cat-chip" href="#${cat.id}">${escapeHtml(cat.label)}</a>`
+  ).join("");
+}
+
+function isMobile() {
+  return window.matchMedia("(max-width: 767px)").matches;
+}
+
+function setupAccordion() {
+  const panels = document.querySelectorAll(".panel[data-accordion]");
+  const mobile = isMobile();
+
+  panels.forEach((panel, index) => {
+    const toggle = panel.querySelector(".section-toggle");
+    if (!toggle) return;
+
+    if (!panel.dataset.ready) {
+      if (mobile && index > 0) {
+        panel.classList.add("is-collapsed");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+      panel.dataset.ready = "1";
+    }
+
+    if (!mobile) {
+      panel.classList.remove("is-collapsed");
+      toggle.setAttribute("aria-expanded", "true");
+    }
+
+    toggle.onclick = () => {
+      if (!isMobile()) return;
+      const collapsed = panel.classList.toggle("is-collapsed");
+      toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    };
+  });
 }
 
 function renderMenu() {
   const root = document.getElementById("menu-root");
   if (!root) return;
 
+  renderCategoryNav();
+
   root.innerHTML = `
     <div class="grid-2">
-      <div class="panel starters">
+      <div class="panel starters" id="starters" data-accordion>
         ${renderSection("Starters", "flame", menuData.starters)}
       </div>
 
       <div>
-        <div class="panel rice">
+        <div class="panel rice" id="rice" data-accordion>
           ${renderSection("Rice Items", "utensils", menuData.rice)}
         </div>
-        <div class="panel roti">
+        <div class="panel roti" id="roti" data-accordion>
           ${renderSection("Tandoori Roti", "coffee", menuData.roti)}
         </div>
       </div>
     </div>
 
     <div class="grid-4">
-      <div class="panel burgers sm">
+      <div class="panel burgers sm" id="burgers" data-accordion>
         ${renderSection("Burgers", "drumstick", menuData.burgers, { smallIcon: true })}
       </div>
-      <div class="panel snacks sm">
+      <div class="panel snacks sm" id="snacks" data-accordion>
         ${renderSection("Snacks", "drumstick", menuData.snacks, { smallIcon: true })}
       </div>
-      <div class="panel fries sm">
+      <div class="panel fries sm" id="fries" data-accordion>
         ${renderSection("Fries", "drumstick", menuData.fries, { smallIcon: true })}
       </div>
-      <div class="panel soups sm">
+      <div class="panel soups sm" id="soups" data-accordion>
         ${renderSection("Soups", "soup", menuData.soups, { smallIcon: true })}
       </div>
     </div>
 
     <div class="grid-3">
-      <div class="panel vada">
+      <div class="panel vada" id="vada" data-accordion>
         ${renderSection("Vada Pav", "coffee", menuData.vadaPav, { smallIcon: true })}
       </div>
-      <div class="panel pav">
+      <div class="panel pav" id="pav" data-accordion>
         ${renderSection("Pav Bhaji", "coffee", menuData.pavBhaji, { smallIcon: true })}
       </div>
-      <div class="panel sandwiches">
+      <div class="panel sandwiches" id="sandwiches" data-accordion>
         ${renderSection("Sandwiches", "sandwich", menuData.sandwiches, { smallIcon: true })}
       </div>
     </div>
 
-    <div class="panel pizza">
+    <div class="panel pizza" id="pizza" data-accordion>
       <div class="menu-section">
-        <div class="section-header">
+        <button type="button" class="section-toggle" aria-expanded="true">
+          <div class="section-header">
+            <span class="section-icon">${ICONS.pizza}</span>
+            <h2 class="section-title">Pizza</h2>
+          </div>
+          <span class="chevron" aria-hidden="true">${CHEVRON}</span>
+        </button>
+        <div class="section-header section-header-desktop">
           <span class="section-icon">${ICONS.pizza}</span>
           <h2 class="section-title">Pizza</h2>
         </div>
-        <div class="pizza-hero">
-          <img src="${escapeHtml(menuData.pizzaImage)}" alt="Pizza" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK_IMG" />
-        </div>
-        <div class="pizza-grid">
-          ${menuData.pizzas.map(renderPizzaItem).join("")}
+        <div class="section-body">
+          <div class="pizza-hero">
+            <img src="${escapeHtml(menuData.pizzaImage)}" alt="Pizza" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK_IMG" />
+          </div>
+          <div class="pizza-grid">
+            ${menuData.pizzas.map(renderPizzaItem).join("")}
+          </div>
         </div>
       </div>
     </div>
@@ -334,6 +413,19 @@ function renderMenu() {
       </div>
     </div>
   `;
+
+  setupAccordion();
+
+  document.querySelectorAll(".cat-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const id = chip.getAttribute("href")?.slice(1);
+      const panel = id ? document.getElementById(id) : null;
+      if (!panel || !isMobile()) return;
+      panel.classList.remove("is-collapsed");
+      const toggle = panel.querySelector(".section-toggle");
+      if (toggle) toggle.setAttribute("aria-expanded", "true");
+    });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", renderMenu);
